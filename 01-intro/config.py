@@ -1,1 +1,1 @@
-MODEL_NAME = "llama3.2:3b"
+MODEL_NAME = "llama3.2:1b"
