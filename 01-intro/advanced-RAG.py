@@ -1,67 +1,32 @@
 from openai import OpenAI
-from faq import context
 from config import MODEL_NAME
-from search import search_from_elastic
+from search import ElasticRetriever
+from rag_helper import INSTRUCTIONS
+from rag_pipeline import RAGPipeline
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 client = OpenAI(
-    base_url="http://localhost:11434/v1",
-    api_key="ollama"
+    base_url=os.getenv("OLLAMA_BASE_URL"),
+    api_key=os.getenv("OLLAMA_API_KEY"),
 )
 
+retriever = ElasticRetriever()
+
+rag = RAGPipeline(
+    retriever=retriever,
+    llm_client=client,
+    model_name=MODEL_NAME,
+    instructions=INSTRUCTIONS,
+)
+
+
 QUESTION = "hey,can i still join the course?"
+answer = rag.ask(QUESTION)
+print(answer)
 
-
-def use_llm(prompt: str):
-    response = client.chat.completions.create(
-    model=MODEL_NAME,
-    messages=[
-        {
-            "role": "user",
-            "content": prompt
-        }
-        ]
-    )
-    return response.choices[0].message.content
-
-
-# To build more advanced RAG system at first we need 3 steps: search, build prompt
-# and sending to llm
-
-def build_context(search_result):
-    context = ""
-
-    for doc in search_result:
-        context += f"Question: {doc['question']}\n"
-        context += f"Answer: {doc['answer']}\n\n"
-
-    return context
-
-
-def build_prompt(question, search_result):
-    context = build_context(search_result)
-
-    return f"""
-You are a course FAQ assistant.
-
-Answer the user question using only the context below.
-If the answer is not in the context, say: I don't know.
-
-Context:
-{context}
-
-User question:
-{question}
-
-"""
-
-
-def rag(question):
-    search_result = search_from_elastic(query=question, course_type="llm-zoomcamp", top_n=2)
-    user_prompt = build_prompt(question, search_result)
-    return use_llm(user_prompt)
-
-
-print(rag(QUESTION))
 
 
 

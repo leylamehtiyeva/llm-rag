@@ -10,9 +10,10 @@ response = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "What is RAG?"
+            "content": "Can I still join the course?"
         }
     ]
 )
 
 print(response.choices[0].message.content)
+print(response.model_dump_json(indent=2))
