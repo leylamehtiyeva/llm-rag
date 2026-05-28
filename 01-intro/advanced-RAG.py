@@ -1,8 +1,8 @@
 from openai import OpenAI
-from config import MODEL_NAME
+from common.config import MODEL_NAME, OLLAMA_API_KEY
 from search import ElasticRetriever
-from rag_helper import INSTRUCTIONS
-from rag_pipeline import RAGPipeline
+from common.rag_helper import INSTRUCTIONS
+from common.rag_pipeline import RAGPipeline
 from dotenv import load_dotenv
 import os
 
