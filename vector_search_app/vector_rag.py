@@ -27,6 +27,6 @@ rag = RAGPipeline(
 )
 
 
-QUESTION = "hey,can i still join the course?"
+QUESTION = "can I use ollama?"
 answer = rag.ask(QUESTION)
 print(answer)

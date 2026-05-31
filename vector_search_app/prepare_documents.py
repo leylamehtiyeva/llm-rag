@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 
-DATA_PATH = Path("01-intro/data/documents.json")
+DATA_PATH = Path("intro/data/documents.json")
 OUTPUT_PATH = Path("vector_search_app/data/embedded_documents.json")
 
 

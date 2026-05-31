@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 
 
-DATA_PATH = Path("01-intro/data/documents.json")
+DATA_PATH = Path("intro/data/documents.json")
 INDEX_NAME = "course-faq"
 
 es_client = Elasticsearch("http://localhost:9200")
