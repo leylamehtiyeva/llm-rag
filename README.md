@@ -1,109 +1,118 @@
 # LLM-RAG
 
-Local RAG system built with:
+A Retrieval-Augmented Generation (RAG) system built with Elasticsearch and OpenAI.
 
-- Ollama
-- Elasticsearch
-- OpenAI-compatible API
-- Python
+The project combines document retrieval, search, and tool-calling workflows to generate grounded answers from an external knowledge base. It demonstrates a production-oriented approach to integrating Large Language Models with search infrastructure.
 
-Current pipeline:
+## Features
 
-```text
-User Question
-↓
-Elasticsearch Retrieval (BM25)
-↓
-Top-k Relevant Documents
-↓
-Context Building
-↓
-Prompt Construction
-↓
-Ollama LLM
-↓
-Final Answer
-```
+* Elasticsearch-based document retrieval
+* OpenAI-powered answer generation
+* Function Calling support
+* Modular retriever architecture
+* Dockerized Elasticsearch deployment
+* Persistent Elasticsearch storage using Docker volumes
+* Extensible tool-calling framework
+* Optional support for local models via Ollama
 
-Project structure:
+---
+
+## Architecture
 
 ```text
-01-intro/
-├── data/
-│   └── documents.json
-├── tests/
-├── advanced-RAG.py
-├── config.py
-├── index_data.py
-├── load_documents.py
-├── rag_helper.py
-├── rag_pipeline.py
-└── search.py
+User Query
+    │
+    ▼
+Retriever (Elasticsearch)
+    │
+    ▼
+Top-K Relevant Documents
+    │
+    ▼
+Context Construction
+    │
+    ▼
+OpenAI Model
+    │
+    ▼
+Grounded Response
 ```
 
 ---
 
-# Setup
+## Tech Stack
 
-## 1. Activate virtual environment
+* Python
+* OpenAI API
+* Elasticsearch
+* Docker
+* Function Calling
+* Jupyter Notebook
+
+---
+
+## Repository Structure
+
+```text
+.
+├── agents/                 # Function-calling agents
+├── intro/                  # Retrieval and indexing logic
+├── data/                   # Knowledge base files
+├── requirements.txt
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## Installation
+
+### Clone the repository
 
 ```bash
+git clone https://github.com/leylamehtiyeva/llm-rag.git
+
+cd llm-rag
+```
+
+### Create a virtual environment
+
+```bash
+python -m venv .venv
+
 source .venv/bin/activate
 ```
 
----
-
-## 2. Start Ollama server
-
-Open separate terminal:
+### Install dependencies
 
 ```bash
-ollama serve
+pip install -r requirements.txt
 ```
 
 ---
 
-## 3. Check available models
+## Configuration
 
-```bash
-ollama list
+Create a `.env` file in the project root:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+MODEL_NAME=gpt-4.1-mini
 ```
 
 ---
 
-## 4. Pull model (only once)
+## Running Elasticsearch
+
+Start Elasticsearch:
 
 ```bash
-ollama pull llama3.2:1b
+docker compose up -d
 ```
 
-or:
+The project uses Docker volumes to persist Elasticsearch data between container restarts.
 
-```bash
-ollama pull llama3.2:3b
-```
-
----
-
-## 5. Start Elasticsearch
-
-Open separate terminal:
-
-```bash
-docker run -it \
-  --rm \
-  --name elasticsearch \
-  -p 9200:9200 \
-  -p 9300:9300 \
-  -e "discovery.type=single-node" \
-  -e "xpack.security.enabled=false" \
-  -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
-  docker.elastic.co/elasticsearch/elasticsearch:8.17.6
-```
-
----
-
-## 6. Check Elasticsearch
+Verify that Elasticsearch is running:
 
 ```bash
 curl http://localhost:9200
@@ -111,71 +120,99 @@ curl http://localhost:9200
 
 ---
 
-# Data pipeline
+## Indexing Documents
 
-## 7. Download FAQ documents
-
-```bash
-python 01-intro/load_documents.py
-```
-
-Creates:
-
-```text
-01-intro/data/documents.json
-```
-
----
-
-## 8. Index documents into Elasticsearch
+Load documents into Elasticsearch:
 
 ```bash
-python 01-intro/index_data.py
+python -m intro.index_data
+```
+
+This step creates the search index and makes the documents available for retrieval.
+
+---
+
+## Running Search
+
+Example usage:
+
+```python
+from intro.search import ElasticRetriever
+
+retriever = ElasticRetriever()
+
+results = retriever.search(
+    query="Can I still join the course?"
+)
+
+for doc in results:
+    print(doc["question"])
 ```
 
 ---
 
-## 9. Test retrieval
+## Running the Agent
+
+Run the function-calling agent:
 
 ```bash
-python 01-intro/search.py
+python -m agents.agents_test
 ```
+
+The agent can:
+
+* retrieve relevant documents
+* call search tools
+* augment prompts with retrieved context
+* generate grounded answers using OpenAI models
 
 ---
 
-## 10. Run full RAG pipeline
+## Example Workflow
+
+1. User submits a question
+2. The retriever searches Elasticsearch
+3. Relevant documents are returned
+4. Context is injected into the prompt
+5. The LLM generates a grounded response
+
+---
+
+## Local Models (Optional)
+
+The default setup uses OpenAI models.
+
+To experiment with local inference, install Ollama:
 
 ```bash
-python 01-intro/advanced-RAG.py
+curl -fsSL https://ollama.com/install.sh | sh
 ```
 
----
+Run a local model:
 
-# Retrieval
+```bash
+ollama run llama3.2
+```
 
-Current retrieval uses:
-
-- Elasticsearch BM25 search
-- Multi-field retrieval
-- Field boosting
-- Metadata filtering
-
-Search fields:
-
-- question
-- section
-- answer
-
-Metadata filtering:
-
-- course
+The project architecture allows replacing the OpenAI client with a local model endpoint when needed.
 
 ---
 
-# Current limitations
+## Future Improvements
 
-- No embeddings yet
-- No vector search yet
-- No reranking
-- Small local models may hallucinate or ignore context
-- Retrieval currently uses BM25 only
+* Hybrid retrieval
+* Semantic search with embeddings
+* Reranking pipelines
+* Evaluation framework
+* Multi-tool agents
+* Conversational memory
+* Advanced RAG workflows
+
+---
+
+## References
+
+* LLM Zoomcamp
+* OpenAI API Documentation
+* Elasticsearch Documentation
+* Ollama Documentation
