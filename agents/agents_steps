@@ -1,0 +1,4 @@
+Step1. Define needed functions
+Step2. Define agent functions structure and dataclass
+Step3. Define instructions for Orchestrator
+Step4. Creating helper functions for agent functional calling

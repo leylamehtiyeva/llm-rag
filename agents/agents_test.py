@@ -2,15 +2,15 @@ from openai import OpenAI
 from common.config import OPENAI_API_KEY, MODEL_NAME
 from intro.search import ElasticRetriever
 import json
-
-
-
 from pathlib import Path
+
+
+#1. Declare client
+
 client = OpenAI(
     api_key=OPENAI_API_KEY,
 )
 
-from intro.search import ElasticRetriever
 
 retriever = ElasticRetriever()
 
@@ -18,10 +18,14 @@ def search(query: str):
     return retriever.search(query=query)
 
 
+
 QUESTION = "I just discovered the course, can i still join it?"
     
-#Lets define our search tool
-
+#2 Lets define our search tool
+"""
+comment - you can add docstring into your function which you whant to describe. 
+Then you don't need any description like search_tool
+"""
 search_tool = {
     "type": "function",
     "name": "search",
@@ -38,6 +42,7 @@ search_tool = {
         "additionalProperties": False
     }
 }
+
 
 
 
@@ -71,14 +76,6 @@ messages.append(function_call_output)
 
 # print(messages)
 
-response = client.responses.create(
-    model=MODEL_NAME,
-    input=messages,
-    tools=[search_tool],
-)
-
-# print(response.output_text)
-# print(response.usage.input_tokens, response.usage.output_tokens)
 
 
 # --------------- Step3 Adding Agent loop ------------
