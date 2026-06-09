@@ -107,7 +107,7 @@ MODEL_NAME=gpt-4.1-mini
 Start Elasticsearch:
 
 ```bash
-docker compose up -d
+docker start elasticsearch
 ```
 
 The project uses Docker volumes to persist Elasticsearch data between container restarts.
