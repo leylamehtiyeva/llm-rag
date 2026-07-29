@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "llm-rag"
+version = "0.1.0"
+description = "RAG course assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "openai>=1,<2",
+    "elasticsearch>=8,<9",
+    "python-dotenv>=1,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "ruff>=0.12,<1",
+]
+
+
+[tool.setuptools]
+py-modules = [
+    "app",
+    "assistant",
+    "dashboard",
+    "db_feedback",
+    "db_init",
+    "db_query",
+    "db_save",
+    "metrics",
+]
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "agents*",
+    "common*",
+    "evaluation*",
+    "intro*",
+    "vector_search_app*",
+]
+exclude = [
+    "data*",
+    ".venv*",
+]
