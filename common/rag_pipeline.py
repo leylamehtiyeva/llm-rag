@@ -1,5 +1,6 @@
 from common.rag_helper import use_llm, build_prompt
 
+
 class RAGPipeline:
     def __init__(
         self,
@@ -26,6 +27,9 @@ class RAGPipeline:
 
         user_prompt = build_prompt(question, search_result)
 
+        return self.llm(user_prompt)
+
+    def llm(self, user_prompt: str) -> str:
         return use_llm(
             self.instructions,
             user_prompt,

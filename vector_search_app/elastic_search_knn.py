@@ -29,6 +29,65 @@ class ElasticVectorRetriever:
         )
 
         return response.data[0].embedding
+    
+    
+    def search_bm25(
+        self,
+        query: str,
+        course_type: str = "llm-zoomcamp",
+        top_n: int = 5,
+    ) -> list[dict[str, Any]]:
+        response = self.es_client.search(
+            index=self.index_name,
+            query={
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query,
+                            "fields": [
+                                "question",
+                                "answer",
+                                "text",
+                            ],
+                            "type": "best_fields",
+                        }
+                    },
+                    "filter": {
+                        "term": {
+                            "course": course_type,
+                        }
+                    },
+                }
+            },
+            size=top_n,
+            source=[
+                "id",
+                "course",
+                "section",
+                "question",
+                "answer",
+                "text",
+            ],
+        )
+
+        results = []
+
+        for hit in response["hits"]["hits"]:
+            doc = hit["_source"]
+
+            results.append(
+                {
+                    "score": hit["_score"],
+                    "id": doc.get("id"),
+                    "course": doc.get("course"),
+                    "section": doc.get("section"),
+                    "question": doc.get("question"),
+                    "answer": doc.get("answer"),
+                    "text": doc.get("text"),
+                }
+            )
+
+        return results
 
     def search(
         self,
@@ -51,6 +110,66 @@ class ElasticVectorRetriever:
                     }
                 },
             },
+            source=[
+                "id",
+                "course",
+                "section",
+                "question",
+                "answer",
+                "text",
+            ],
+        )
+
+        results = []
+
+        for hit in response["hits"]["hits"]:
+            doc = hit["_source"]
+
+            results.append(
+                {
+                    "score": hit["_score"],
+                    "id": doc.get("id"),
+                    "course": doc.get("course"),
+                    "section": doc.get("section"),
+                    "question": doc.get("question"),
+                    "answer": doc.get("answer"),
+                    "text": doc.get("text"),
+                }
+            )
+
+        return results
+    
+    
+    def search_bm25_param(
+        self,
+        query: str,
+        question_boost: float,
+        course_type: str = "llm-zoomcamp",
+        top_n: int = 5,
+    ) -> list[dict[str, Any]]:
+        response = self.es_client.search(
+            index=self.index_name,
+            query={
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query,
+                            "fields": [
+                                f"question^{question_boost}",
+                                "answer",
+                                "text",
+                            ],
+                            "type": "best_fields",
+                        }
+                    },
+                    "filter": {
+                        "term": {
+                            "course": course_type,
+                        }
+                    },
+                }
+            },
+            size=top_n,
             source=[
                 "id",
                 "course",

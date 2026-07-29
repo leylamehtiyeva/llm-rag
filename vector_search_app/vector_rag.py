@@ -27,6 +27,6 @@ rag = RAGPipeline(
 )
 
 
-QUESTION = "can I use ollama?"
+QUESTION = "Hi, guys!I have a question. I have already ended the course and want to start doing the capstone project.Is is okey if I’ll join the live cohort and I’ll check 3 homework assignments, but I won’t do any of my own. Will that be enough?"
 answer = rag.ask(QUESTION)
 print(answer)

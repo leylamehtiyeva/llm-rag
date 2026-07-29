@@ -9,24 +9,59 @@ openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 retriever = ElasticRetriever()
 
+
+#Объявим наши тулы, которыми может пользоваться агент.
 def agent_search(query):
     return retriever.search(query=query)
+
+def get_course_status():
+    return {
+        "course_name": "LLM Zoomcamp",
+        "enrollment_status": "open",
+        "can_join_late": True,
+        "message": "Students may join after the official start date."
+    }
 
 #Step2
 
 search_tool = {
     "type": "function",
-    "name": "agent_search",
-    "description": "Search the FAQ database for entries matching the given query.",
+    "name": "search",
+    "description": (
+        "Search the course FAQ for general information, rules, "
+        "policies, and answers to student questions."
+    ),
+    "strict": True,
     "parameters": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "Search query text to look up in the course FAQ."
+                "description": (
+                    "A concise search query containing the important "
+                    "keywords from the student's question."
+                )
             }
         },
         "required": ["query"],
+        "additionalProperties": False
+    }
+}
+
+
+course_status_tool = {
+    "type": "function",
+    "name": "get_course_status",
+    "description": (
+        "Get the current course enrollment status. "
+        "Use this when the student asks whether enrollment is currently "
+        "open or whether they can still join the course."
+    ),
+    "strict": True,
+    "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": [],
         "additionalProperties": False
     }
 }
@@ -89,10 +124,15 @@ def agent_loop(question: str,
     while i <= max_iter:
         print(f"Iteration number # {i}")
         has_function_calls = False
+        
+        tools = [
+            search_tool,
+            course_status_tool,
+        ]
         response = openai_client.responses.create(
             model=model_name,
             input=messages,
-            tools=[search_tool]
+            tools=tools
             )
         
         messages.extend(response.output)
@@ -102,6 +142,9 @@ def agent_loop(question: str,
                 call_json = make_functional_call(item)
                 messages.append(call_json)
                 has_function_calls = True
+                
+            elif item.name == "get_course_status":
+                result = get_course_status(**arguments)
             
             elif item.type == "message":
                 last_answer = item.content[0].text

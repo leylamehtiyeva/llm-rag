@@ -14,8 +14,11 @@ client = OpenAI(
 
 retriever = ElasticRetriever()
 
+# def search(query: str):
+#     return retriever.search(query=query)
+
 def search(query: str):
-    return retriever.search(query=query)
+    return print("Hello, World!")
 
 
 
@@ -56,101 +59,106 @@ response = client.responses.create(
     tools=[search_tool],
 )
 
+# print(f'this is response {response}')
 call = response.output[0]
+
+print(f"response function tool: {call}")
 
 args = json.loads(call.arguments)
 result = search(**args)
 
-result_json = json.dumps(result, indent=2)
+
+
+# result_json = json.dumps(result, indent=2)
 
 
 
-function_call_output = {
-    "type": "function_call_output",
-    'call_id': call.call_id,
-    'output': result_json,
-}
+# function_call_output = {
+#     "type": "function_call_output",
+#     'call_id': call.call_id,
+#     'output': result_json,
+# }
 
-messages.extend(response.output)
-messages.append(function_call_output)
+# messages.extend(response.output)
+# messages.append(function_call_output)
 
-# print(messages)
-
-
-
-# --------------- Step3 Adding Agent loop ------------
-
-instructions = """
-You're a course teaching assistant.
-You're given a question from a course student and your task is to answer it.
-
-If you want to look up information, use the search function. 
-Use as many keywords from the user question as possible when making first requests.
-
-Make multiple searches.
-
-Try to expand your search by using new keywords
-based on the results you get from the search.
-
-At the end, ask if there are other areas that the user wants to explore.
-""".strip()
+# # print(messages)
 
 
-def make_call(call):
-    args = json.loads(call.arguments)
 
-    if call.name == "search":
-        result = search(**args)
+# # --------------- Step3 Adding Agent loop ------------
 
-    result_json = json.dumps(result, indent=2)
+# instructions = """
+# You're a course teaching assistant.
+# You're given a question from a course student and your task is to answer it.
 
-    return {
-        "type": "function_call_output",
-        "call_id": call.call_id,
-        "output": result_json,
-    }
+# If you want to look up information, use the search function. 
+# Use as many keywords from the user question as possible when making first requests.
+
+# Make multiple searches.
+
+# Try to expand your search by using new keywords
+# based on the results you get from the search.
+
+# At the end, ask if there are other areas that the user wants to explore.
+# """.strip()
 
 
-def agent_loop(instructions, question, model, max_iterations=5) -> str:
-    messages = [
-        {"role": "developer", "content": instructions},
-        {"role": "user", "content": question}
-    ]
+# def make_call(call):
+#     args = json.loads(call.arguments)
 
-    it = 1
-    last_answer = None
+#     if call.name == "search":
+#         result = search(**args)
 
-    while it <= max_iterations:
-        print(f"iteration #{it}...")
-        has_function_calls = False
+#     result_json = json.dumps(result, indent=2)
 
-        response = client.responses.create(
-            model=model,
-            input=messages,
-            tools=[search_tool]
-        )
+#     return {
+#         "type": "function_call_output",
+#         "call_id": call.call_id,
+#         "output": result_json,
+#     }
 
-        messages.extend(response.output)
 
-        for item in response.output:
-            if item.type == "function_call":
-                print("function_call:", item.name, item.arguments)
-                call_output = make_call(item)
-                messages.append(call_output)
-                has_function_calls = True
+# def agent_loop(instructions, question, model, max_iterations=5) -> str:
+#     messages = [
+#         {"role": "developer", "content": instructions},
+#         {"role": "user", "content": question}
+#     ]
 
-            elif item.type == "message":
-                print("ASSISTANT:")
-                last_answer = item.content[0].text
-                print(item.content[0].text)
+#     it = 1
+#     last_answer = None
 
-        it = it + 1
-        if has_function_calls == False:
-            break
+#     while it <= max_iterations:
+#         print(f"iteration #{it}...")
+#         has_function_calls = False
 
-    return last_answer
+#         response = client.responses.create(
+#             model=model,
+#             input=messages,
+#             tools=[search_tool]
+#         )
 
-print(agent_loop(instructions, "How do I run Olama locally?", MODEL_NAME))
+#         messages.extend(response.output)
+
+#         for item in response.output:
+#             if item.type == "function_call":
+#                 print("function_call:", item.name, item.arguments)
+#                 call_output = make_call(item)
+#                 messages.append(call_output)
+#                 has_function_calls = True
+
+#             elif item.type == "message":
+#                 print("ASSISTANT:")
+#                 last_answer = item.content[0].text
+#                 print(item.content[0].text)
+
+#         it = it + 1
+#         if has_function_calls == False:
+#             break
+
+#     return last_answer
+
+# print(agent_loop(instructions, "How do I run Olama locally?", MODEL_NAME))
 
 
 
